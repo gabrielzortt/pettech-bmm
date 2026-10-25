@@ -1,19 +1,23 @@
 {
   "name": "pettech-api-bmm",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "description": "API REST da PetTech (Express + TypeScript + SQLite)",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "resetar-banco": "node -e \"require('fs').rmSync('dados/pettech.db',{force:true});require('fs').rmSync('dados/pettech.db-wal',{force:true});require('fs').rmSync('dados/pettech.db-shm',{force:true});console.log('Banco removido. Ele será recriado com os dados iniciais no próximo start.')\""
   },
   "dependencies": {
+    "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
     "express": "^4.21.2"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^22.10.0",

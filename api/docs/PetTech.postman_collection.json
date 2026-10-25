@@ -23,8 +23,51 @@
           "path": [
             "produtos"
           ]
-        },
-        "description": ""
+        }
+      }
+    },
+    {
+      "name": "Filtrar por categoria (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/produtos?categoria=Brinquedos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "produtos"
+          ],
+          "query": [
+            {
+              "key": "categoria",
+              "value": "Brinquedos"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Buscar por texto (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/produtos?busca=coleira",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "produtos"
+          ],
+          "query": [
+            {
+              "key": "busca",
+              "value": "coleira"
+            }
+          ]
+        }
       }
     },
     {
@@ -41,12 +84,11 @@
             "produtos",
             "3"
           ]
-        },
-        "description": ""
+        }
       }
     },
     {
-      "name": "Buscar produto inexistente (404)",
+      "name": "Produto inexistente (404)",
       "request": {
         "method": "GET",
         "header": [],
@@ -59,12 +101,11 @@
             "produtos",
             "99"
           ]
-        },
-        "description": ""
+        }
       }
     },
     {
-      "name": "Buscar com id inválido (400)",
+      "name": "Id inválido (400)",
       "request": {
         "method": "GET",
         "header": [],
@@ -77,8 +118,7 @@
             "produtos",
             "abc"
           ]
-        },
-        "description": ""
+        }
       }
     },
     {
@@ -100,10 +140,9 @@
             "produtos"
           ]
         },
-        "description": "",
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"nome\": \"Tapete Sensor\",\n  \"descricao\": \"Tapete com sensor de peso para acompanhar o pet.\",\n  \"preco\": 159.9,\n  \"imagem\": \"https://example.com/tapete.jpg\",\n  \"categoria\": \"Higiene\"\n}",
+          "raw": "{\n  \"nome\": \"Tapete Sensor\",\n  \"descricao\": \"Tapete com sensor de peso para acompanhar o pet.\",\n  \"preco\": 159.9,\n  \"categoria\": \"Higiene\",\n  \"subtitulo\": \"Monitora o peso\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -131,7 +170,6 @@
             "produtos"
           ]
         },
-        "description": "",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"nome\": \"A\",\n  \"preco\": -1,\n  \"categoria\": \"X\"\n}",
@@ -162,7 +200,6 @@
             "produtos"
           ]
         },
-        "description": "",
         "body": {
           "mode": "raw",
           "raw": "{nome:",
@@ -171,6 +208,70 @@
               "language": "json"
             }
           }
+        }
+      }
+    },
+    {
+      "name": "Atualizar produto (200)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/produtos/9",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "produtos",
+            "9"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Tapete Sensor\",\n  \"descricao\": \"Tapete com sensor de peso para acompanhar o pet.\",\n  \"preco\": 169.9,\n  \"categoria\": \"Higiene\",\n  \"subtitulo\": \"Monitora o peso\",\n  \"novo\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Remover produto (204)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/produtos/9",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "produtos",
+            "9"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Listar categorias (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/categorias",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "categorias"
+          ]
         }
       }
     },
@@ -187,8 +288,7 @@
           "path": [
             "xyz"
           ]
-        },
-        "description": ""
+        }
       }
     }
   ]
