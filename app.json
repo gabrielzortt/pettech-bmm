@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "PetTech",
+    "slug": "pettech-bmm",
+    "version": "1.0.0",
+    "scheme": "pettechbmm",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F2B31"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0F2B31"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      "expo-font"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/icon.png"
+    },
+    "experiments": {
+      "baseUrl": "/pettech-bmm"
+    }
+  }
+}
