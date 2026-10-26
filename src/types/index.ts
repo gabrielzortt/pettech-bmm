@@ -11,6 +11,8 @@ export interface ProdutoBMM {
   descricaoBMM: string;
   precoBMM: number;
   imagemBMM: ImageSourcePropType;
+  imagemReservaBMM: ImageSourcePropType;
+  slugBMM: string;
   categoriaBMM: string;
   notaBMM: number;
   avaliacoesBMM: number;

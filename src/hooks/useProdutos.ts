@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ProdutoBMM } from '@/types';
-import { buscarProdutoBMM, buscarProdutosBMM, OrigemBMM } from '@/services/api';
+import { buscarProdutoBMM, buscarProdutosBMM } from '@/services/api';
 
 const mensagemErroBMM = (falhaBMM: unknown): string =>
   falhaBMM instanceof Error ? falhaBMM.message : 'Erro inesperado. Tente novamente.';
 
 export function useProdutosBMM() {
   const [produtosBMM, setProdutosBMM] = useState<ProdutoBMM[]>([]);
-  const [origemBMM, setOrigemBMM] = useState<OrigemBMM>('api');
   const [carregandoBMM, setCarregandoBMM] = useState<boolean>(true);
   const [atualizandoBMM, setAtualizandoBMM] = useState<boolean>(false);
   const [erroBMM, setErroBMM] = useState<string>('');
@@ -17,9 +16,7 @@ export function useProdutosBMM() {
     else setCarregandoBMM(true);
     setErroBMM('');
     try {
-      const respostaBMM = await buscarProdutosBMM();
-      setProdutosBMM(respostaBMM.produtosBMM);
-      setOrigemBMM(respostaBMM.origemBMM);
+      setProdutosBMM(await buscarProdutosBMM());
     } catch (falhaBMM) {
       setErroBMM(mensagemErroBMM(falhaBMM));
     } finally {
@@ -34,7 +31,6 @@ export function useProdutosBMM() {
 
   return {
     produtosBMM,
-    origemBMM,
     carregandoBMM,
     atualizandoBMM,
     erroBMM,

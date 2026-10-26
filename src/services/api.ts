@@ -1,34 +1,27 @@
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import { ImageSourcePropType } from 'react-native';
 import { ProdutoBMM } from '@/types';
-import { produtosLocaisBMM } from '@/data/produtosLocais';
-
-export type OrigemBMM = 'api' | 'local';
+import { tempoLimiteApiBMM, urlApiBMM } from '@/config/ambiente';
+import { imagensProdutosBMM } from '@/data/imagensLocais';
 
 interface ProdutoApiBMM {
-  id: number;
+  id: string;
   nome: string;
   subtitulo: string;
   descricao: string;
   preco: number;
   imagem: string;
+  slug: string;
   categoria: string;
   nota: number;
   avaliacoes: number;
   novo: boolean;
 }
 
-const portaApiBMM: number = 3333;
-const tempoLimiteBMM: number = 8000;
-const erroRedeBMM = 'Não foi possível conectar ao servidor. Confira se a API está rodando.';
+const erroRedeBMM = 'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.';
 
-const obterUrlBaseBMM = (): string => {
-  const urlConfiguradaBMM = process.env.EXPO_PUBLIC_API_URL;
-  if (urlConfiguradaBMM) return urlConfiguradaBMM;
-  const hostBMM = Constants.expoConfig?.hostUri?.split(':')[0];
-  if (hostBMM) return `http://${hostBMM}:${portaApiBMM}`;
-  return Platform.OS === 'android' ? `http://10.0.2.2:${portaApiBMM}` : `http://localhost:${portaApiBMM}`;
-};
+// Se a foto remota não carregar, o app mostra a ilustração do produto guardada no próprio aplicativo.
+const obterReservaBMM = (slugBMM: string): ImageSourcePropType =>
+  (imagensProdutosBMM as Record<string, ImageSourcePropType>)[slugBMM] ?? imagensProdutosBMM.padrao;
 
 const converterBMM = (produtoApiBMM: ProdutoApiBMM): ProdutoBMM => ({
   idBMM: String(produtoApiBMM.id),
@@ -37,51 +30,35 @@ const converterBMM = (produtoApiBMM: ProdutoApiBMM): ProdutoBMM => ({
   descricaoBMM: produtoApiBMM.descricao,
   precoBMM: produtoApiBMM.preco,
   imagemBMM: { uri: produtoApiBMM.imagem },
+  imagemReservaBMM: obterReservaBMM(produtoApiBMM.slug),
+  slugBMM: produtoApiBMM.slug,
   categoriaBMM: produtoApiBMM.categoria,
   notaBMM: produtoApiBMM.nota,
   avaliacoesBMM: produtoApiBMM.avaliacoes,
   novoBMM: produtoApiBMM.novo,
 });
 
-class ErroApiBMM extends Error {
-  constructor(mensagemBMM: string, readonly redeBMM: boolean) {
-    super(mensagemBMM);
-  }
-}
-
 async function requisitarBMM<TipoBMM>(caminhoBMM: string): Promise<TipoBMM> {
   const controladorBMM = new AbortController();
-  const temporizadorBMM = setTimeout(() => controladorBMM.abort(), tempoLimiteBMM);
+  const temporizadorBMM = setTimeout(() => controladorBMM.abort(), tempoLimiteApiBMM);
   let respostaBMM: Response;
   try {
-    respostaBMM = await fetch(`${obterUrlBaseBMM()}${caminhoBMM}`, { signal: controladorBMM.signal });
+    respostaBMM = await fetch(`${urlApiBMM}${caminhoBMM}`, { signal: controladorBMM.signal });
   } catch {
-    throw new ErroApiBMM(erroRedeBMM, true);
+    throw new Error(erroRedeBMM);
   } finally {
     clearTimeout(temporizadorBMM);
   }
-  if (respostaBMM.status === 404) throw new ErroApiBMM('Produto não encontrado.', false);
-  if (!respostaBMM.ok) throw new ErroApiBMM(`O servidor respondeu com erro (${respostaBMM.status}).`, false);
+  if (respostaBMM.status === 404) throw new Error('Produto não encontrado.');
+  if (!respostaBMM.ok) throw new Error(`O servidor respondeu com erro (${respostaBMM.status}).`);
   return (await respostaBMM.json()) as TipoBMM;
 }
 
-export async function buscarProdutosBMM(): Promise<{ produtosBMM: ProdutoBMM[]; origemBMM: OrigemBMM }> {
-  try {
-    const listaBMM = await requisitarBMM<ProdutoApiBMM[]>('/produtos');
-    return { produtosBMM: listaBMM.map(converterBMM), origemBMM: 'api' };
-  } catch (falhaBMM) {
-    if (falhaBMM instanceof ErroApiBMM && falhaBMM.redeBMM) return { produtosBMM: produtosLocaisBMM, origemBMM: 'local' };
-    throw falhaBMM;
-  }
+export async function buscarProdutosBMM(): Promise<ProdutoBMM[]> {
+  const listaBMM = await requisitarBMM<ProdutoApiBMM[]>('/produtos');
+  return listaBMM.map(converterBMM);
 }
 
 export async function buscarProdutoBMM(idBMM: string): Promise<ProdutoBMM> {
-  try {
-    return converterBMM(await requisitarBMM<ProdutoApiBMM>(`/produtos/${encodeURIComponent(idBMM)}`));
-  } catch (falhaBMM) {
-    if (!(falhaBMM instanceof ErroApiBMM) || !falhaBMM.redeBMM) throw falhaBMM;
-    const localBMM = produtosLocaisBMM.find((produtoBMM) => produtoBMM.idBMM === idBMM);
-    if (!localBMM) throw new Error('Produto não encontrado.');
-    return localBMM;
-  }
+  return converterBMM(await requisitarBMM<ProdutoApiBMM>(`/produtos/${encodeURIComponent(idBMM)}`));
 }

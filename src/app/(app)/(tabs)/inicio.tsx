@@ -18,7 +18,7 @@ export default function InicioBMM() {
   const roteadorBMM = useRouter();
   const insetsBMM = useSafeAreaInsets();
   const { usuarioBMM } = useAuthBMM();
-  const { produtosBMM, origemBMM, carregandoBMM, atualizandoBMM, erroBMM, recarregarBMM, atualizarBMM } = useProdutosBMM();
+  const { produtosBMM, carregandoBMM, atualizandoBMM, erroBMM, recarregarBMM, atualizarBMM } = useProdutosBMM();
   const [buscaBMM, setBuscaBMM] = useState<string>('');
   const [categoriaBMM, setCategoriaBMM] = useState<string>(categoriasBMM[0]);
   const [ordemBMM, setOrdemBMM] = useState<OrdemBMM>('relevancia');
@@ -41,7 +41,7 @@ export default function InicioBMM() {
   const estadoVazioBMM = carregandoBMM ? (
     <View style={estilosBMM.carregandoBMM}>
       <ActivityIndicator size="large" color={coresBMM.primariaBMM} />
-      <Text style={estilosBMM.carregandoTextoBMM}>Buscando produtos...</Text>
+      <Text style={estilosBMM.carregandoTextoBMM}>Buscando produtos no servidor...{'\n'}Na primeira vez pode levar alguns segundos.</Text>
     </View>
   ) : erroBMM !== '' ? (
     <TelaVazia iconeBMM="cloud-offline-outline" tituloBMM="Sem conexão com a API" textoBMM={erroBMM} rotuloBotaoBMM="Tentar novamente" aoPressionarBMM={recarregarBMM} />
@@ -51,12 +51,6 @@ export default function InicioBMM() {
 
   const cabecalhoListaBMM = (
     <View style={{ marginHorizontal: -20 }}>
-      {origemBMM === 'local' && (
-        <Pressable style={estilosBMM.avisoBMM} onPress={recarregarBMM}>
-          <Ionicons name="cloud-offline-outline" size={16} color={coresBMM.primariaEscuraBMM} />
-          <Text style={estilosBMM.avisoTextoBMM}>Modo demonstração: API indisponível. Toque para tentar de novo.</Text>
-        </Pressable>
-      )}
       <FiltroCategorias opcoesBMM={categoriasBMM} selecionadaBMM={categoriaBMM} aoSelecionarBMM={setCategoriaBMM} />
       {!carregandoBMM && erroBMM === '' && (
         <Text style={estilosBMM.resumoBMM}>{listaBMM.length} {listaBMM.length === 1 ? 'produto' : 'produtos'} · {rotuloOrdemBMM}</Text>
@@ -132,11 +126,9 @@ const estilosBMM = StyleSheet.create({
   buscaBMM: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 58, marginTop: -29, marginHorizontal: 20, backgroundColor: coresBMM.superficieBMM, borderRadius: raioBMM.lgBMM, paddingLeft: 16, paddingRight: 7, zIndex: 2, ...sombrasBMM.elevadaBMM },
   buscaEntradaBMM: { flex: 1, height: '100%', fontFamily: fontesBMM.regularBMM, fontSize: 14, color: coresBMM.tintaBMM },
   filtroBMM: { width: 44, height: 44, borderRadius: 13, backgroundColor: coresBMM.primariaBMM, alignItems: 'center', justifyContent: 'center' },
-  avisoBMM: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 20, marginTop: 14, backgroundColor: coresBMM.primariaFundoBMM, borderRadius: raioBMM.mdBMM, paddingHorizontal: 12, paddingVertical: 10 },
-  avisoTextoBMM: { flex: 1, fontFamily: fontesBMM.mediaBMM, fontSize: 12, color: coresBMM.primariaEscuraBMM },
   resumoBMM: { fontFamily: fontesBMM.regularBMM, fontSize: 12, color: coresBMM.tintaSuaveBMM, marginHorizontal: 20, marginBottom: 12, marginTop: -4 },
   carregandoBMM: { alignItems: 'center', paddingVertical: 64, gap: 14 },
-  carregandoTextoBMM: { fontFamily: fontesBMM.regularBMM, fontSize: 14, color: coresBMM.tintaSuaveBMM },
+  carregandoTextoBMM: { fontFamily: fontesBMM.regularBMM, fontSize: 14, lineHeight: 21, textAlign: 'center', color: coresBMM.tintaSuaveBMM },
   fundoModalBMM: { flex: 1, backgroundColor: 'rgba(10,31,36,0.5)', justifyContent: 'flex-end' },
   folhaBMM: { backgroundColor: coresBMM.superficieBMM, borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, paddingBottom: 36 },
   alcaBMM: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: coresBMM.linhaBMM, marginBottom: 18 },

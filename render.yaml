@@ -1,0 +1,15 @@
+# Blueprint do Render: cria o serviço da API (Express) a partir da pasta api/.
+services:
+  - type: web
+    name: pettech-api-bmm
+    runtime: node
+    rootDir: api
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /saude
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false

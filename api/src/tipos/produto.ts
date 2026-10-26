@@ -1,10 +1,11 @@
 export interface ProdutoBMM {
-  id: number;
+  id: string;
   nome: string;
   subtitulo: string;
   descricao: string;
   preco: number;
   imagem: string;
+  slug: string;
   categoria: string;
   nota: number;
   avaliacoes: number;

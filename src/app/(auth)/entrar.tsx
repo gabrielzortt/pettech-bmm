@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ImageBackground, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BotaoAcao from '@/components/ui/BotaoAcao';
 import CampoTexto from '@/components/ui/CampoTexto';
 import { useAuthBMM, usuarioPadraoBMM } from '@/store';
+import FotoBMM from '@/components/ui/FotoBMM';
 import { heroLoginBMM } from '@/data/imagensLocais';
+import { fotosRemotasBMM } from '@/data/imagensRemotas';
 import { coresBMM, fontesBMM } from '@/theme';
 
 export default function EntrarBMM() {
@@ -38,7 +40,8 @@ export default function EntrarBMM() {
     <KeyboardAvoidingView style={estilosBMM.telaBMM} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
-        <ImageBackground source={heroLoginBMM} resizeMode="cover" style={{ height: Math.max(alturaBMM * 0.4, 280) }}>
+        <View style={{ height: Math.max(alturaBMM * 0.4, 280) }}>
+          <FotoBMM origemBMM={{ uri: fotosRemotasBMM.loginBMM }} reservaBMM={heroLoginBMM} estiloBMM={StyleSheet.absoluteFill} />
           <LinearGradient colors={['rgba(15,43,49,0)', coresBMM.petroleoBMM]} style={StyleSheet.absoluteFill} />
           <Pressable
             style={[estilosBMM.voltarBMM, { top: insetsBMM.top + 12 }]}
@@ -47,7 +50,7 @@ export default function EntrarBMM() {
           >
             <Ionicons name="chevron-back" size={22} color={coresBMM.brancoBMM} />
           </Pressable>
-        </ImageBackground>
+        </View>
 
         <View style={estilosBMM.painelBMM}>
           <Text style={estilosBMM.tituloBMM}>Bem-vindo ao PetTech</Text>

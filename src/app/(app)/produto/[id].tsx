@@ -78,7 +78,7 @@ export default function DetalhesProdutoBMM() {
             ],
           }}
         >
-          <FotoBMM origemBMM={produtoBMM.imagemBMM} estiloBMM={{ width: '100%', height: '100%' }} />
+          <FotoBMM origemBMM={produtoBMM.imagemBMM} reservaBMM={produtoBMM.imagemReservaBMM} estiloBMM={{ width: '100%', height: '100%' }} />
         </Animated.View>
 
         <View style={estilosBMM.corpoBMM}>

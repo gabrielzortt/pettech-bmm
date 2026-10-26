@@ -6,12 +6,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BotaoAcao from '@/components/ui/BotaoAcao';
 import FotoBMM from '@/components/ui/FotoBMM';
 import { herosBoasVindasBMM } from '@/data/imagensLocais';
+import { fotosRemotasBMM } from '@/data/imagensRemotas';
 import { coresBMM, fontesBMM } from '@/theme';
 
 const slidesBMM = [
-  { idBMM: 'a', tituloBMM: 'Tecnologia para quem você ama', textoBMM: 'Coleiras, câmeras e comedouros inteligentes para o seu pet, entregues na sua porta. Comece agora!', imagemBMM: herosBoasVindasBMM[0] },
-  { idBMM: 'b', tituloBMM: 'Cuide mesmo de longe', textoBMM: 'Acompanhe localização, alimentação e brincadeiras do seu melhor amigo direto pelo celular.', imagemBMM: herosBoasVindasBMM[1] },
-  { idBMM: 'c', tituloBMM: 'Compra simples e segura', textoBMM: 'Escolha, pague com Pix ou cartão e acompanhe o pedido do clique até a sua casa.', imagemBMM: herosBoasVindasBMM[2] },
+  { idBMM: 'a', tituloBMM: 'Tecnologia para quem você ama', textoBMM: 'Coleiras, câmeras e comedouros inteligentes para o seu pet, entregues na sua porta. Comece agora!', imagemBMM: { uri: fotosRemotasBMM.boasVindasBMM[0] }, reservaBMM: herosBoasVindasBMM[0] },
+  { idBMM: 'b', tituloBMM: 'Cuide mesmo de longe', textoBMM: 'Acompanhe localização, alimentação e brincadeiras do seu melhor amigo direto pelo celular.', imagemBMM: { uri: fotosRemotasBMM.boasVindasBMM[1] }, reservaBMM: herosBoasVindasBMM[1] },
+  { idBMM: 'c', tituloBMM: 'Compra simples e segura', textoBMM: 'Escolha, pague com Pix ou cartão e acompanhe o pedido do clique até a sua casa.', imagemBMM: { uri: fotosRemotasBMM.boasVindasBMM[2] }, reservaBMM: herosBoasVindasBMM[2] },
 ];
 
 export default function BoasVindasBMM() {
@@ -53,7 +54,7 @@ export default function BoasVindasBMM() {
         getItemLayout={(_dadosBMM, posBMM) => ({ length: larguraBMM, offset: larguraBMM * posBMM, index: posBMM })}
         renderItem={({ item: slideBMM }) => (
           <View style={{ width: larguraBMM }}>
-            <FotoBMM origemBMM={slideBMM.imagemBMM} estiloBMM={{ width: larguraBMM, height: alturaImagemBMM, borderBottomLeftRadius: 40, borderBottomRightRadius: 40 }} />
+            <FotoBMM origemBMM={slideBMM.imagemBMM} reservaBMM={slideBMM.reservaBMM} estiloBMM={{ width: larguraBMM, height: alturaImagemBMM, borderBottomLeftRadius: 40, borderBottomRightRadius: 40 }} />
             <View style={estilosBMM.textosBMM}>
               <Text style={estilosBMM.tituloBMM}>{slideBMM.tituloBMM}</Text>
               <Text style={estilosBMM.textoBMM}>{slideBMM.textoBMM}</Text>

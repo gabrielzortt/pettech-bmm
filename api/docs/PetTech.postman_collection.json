@@ -6,7 +6,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3333"
+      "value": "https://pettech-api-bmm.onrender.com"
     }
   ],
   "item": [

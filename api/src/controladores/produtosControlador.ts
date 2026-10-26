@@ -10,21 +10,21 @@ const comImagemAbsolutaBMM = (produtoBMM: ProdutoBMM, urlBaseBMM: string): Produ
   imagem: produtoBMM.imagem.startsWith('/') ? `${urlBaseBMM}${produtoBMM.imagem}` : produtoBMM.imagem,
 });
 
-const lerIdBMM = (reqBMM: Request, resBMM: Response): number | null => {
+const lerIdBMM = (reqBMM: Request, resBMM: Response): string | null => {
   const idTextoBMM = String(reqBMM.params.id);
   if (!/^[1-9]\d*$/.test(idTextoBMM)) {
     resBMM.status(400).json({ erro: 'ID inválido. Informe um número inteiro positivo.' });
     return null;
   }
-  return Number(idTextoBMM);
+  return idTextoBMM;
 };
 
 const lerTextoConsultaBMM = (valorBMM: unknown): string | undefined =>
   typeof valorBMM === 'string' && valorBMM.trim() !== '' ? valorBMM.trim() : undefined;
 
 export const produtosControladorBMM = {
-  listarBMM(reqBMM: Request, resBMM: Response): void {
-    const listaBMM = produtosRepositorioBMM.listarBMM({
+  async listarBMM(reqBMM: Request, resBMM: Response): Promise<void> {
+    const listaBMM = await produtosRepositorioBMM.listarBMM({
       categoriaBMM: lerTextoConsultaBMM(reqBMM.query.categoria),
       buscaBMM: lerTextoConsultaBMM(reqBMM.query.busca),
     });
@@ -32,10 +32,10 @@ export const produtosControladorBMM = {
     resBMM.status(200).json(listaBMM.map((produtoBMM) => comImagemAbsolutaBMM(produtoBMM, urlBaseBMM)));
   },
 
-  buscarBMM(reqBMM: Request, resBMM: Response): void {
+  async buscarBMM(reqBMM: Request, resBMM: Response): Promise<void> {
     const idBMM = lerIdBMM(reqBMM, resBMM);
     if (idBMM === null) return;
-    const produtoBMM = produtosRepositorioBMM.buscarPorIdBMM(idBMM);
+    const produtoBMM = await produtosRepositorioBMM.buscarPorIdBMM(idBMM);
     if (!produtoBMM) {
       resBMM.status(404).json({ erro: `Produto com id ${idBMM} não encontrado.` });
       return;
@@ -43,17 +43,17 @@ export const produtosControladorBMM = {
     resBMM.status(200).json(comImagemAbsolutaBMM(produtoBMM, montarUrlBaseBMM(reqBMM)));
   },
 
-  criarBMM(reqBMM: Request, resBMM: Response): void {
+  async criarBMM(reqBMM: Request, resBMM: Response): Promise<void> {
     const resultadoBMM = validarProdutoBMM(reqBMM.body);
     if (!resultadoBMM.validoBMM) {
       resBMM.status(400).json({ erro: 'Dados inválidos.', detalhes: resultadoBMM.errosBMM });
       return;
     }
-    const criadoBMM = produtosRepositorioBMM.inserirBMM(resultadoBMM.dadosBMM);
+    const criadoBMM = await produtosRepositorioBMM.inserirBMM(resultadoBMM.dadosBMM);
     resBMM.status(201).location(`/produtos/${criadoBMM.id}`).json(comImagemAbsolutaBMM(criadoBMM, montarUrlBaseBMM(reqBMM)));
   },
 
-  atualizarBMM(reqBMM: Request, resBMM: Response): void {
+  async atualizarBMM(reqBMM: Request, resBMM: Response): Promise<void> {
     const idBMM = lerIdBMM(reqBMM, resBMM);
     if (idBMM === null) return;
     const resultadoBMM = validarProdutoBMM(reqBMM.body);
@@ -61,7 +61,7 @@ export const produtosControladorBMM = {
       resBMM.status(400).json({ erro: 'Dados inválidos.', detalhes: resultadoBMM.errosBMM });
       return;
     }
-    const atualizadoBMM = produtosRepositorioBMM.atualizarBMM(idBMM, resultadoBMM.dadosBMM);
+    const atualizadoBMM = await produtosRepositorioBMM.atualizarBMM(idBMM, resultadoBMM.dadosBMM);
     if (!atualizadoBMM) {
       resBMM.status(404).json({ erro: `Produto com id ${idBMM} não encontrado.` });
       return;
@@ -69,17 +69,17 @@ export const produtosControladorBMM = {
     resBMM.status(200).json(comImagemAbsolutaBMM(atualizadoBMM, montarUrlBaseBMM(reqBMM)));
   },
 
-  removerBMM(reqBMM: Request, resBMM: Response): void {
+  async removerBMM(reqBMM: Request, resBMM: Response): Promise<void> {
     const idBMM = lerIdBMM(reqBMM, resBMM);
     if (idBMM === null) return;
-    if (!produtosRepositorioBMM.removerBMM(idBMM)) {
+    if (!(await produtosRepositorioBMM.removerBMM(idBMM))) {
       resBMM.status(404).json({ erro: `Produto com id ${idBMM} não encontrado.` });
       return;
     }
     resBMM.status(204).send();
   },
 
-  listarCategoriasBMM(_reqBMM: Request, resBMM: Response): void {
-    resBMM.status(200).json(produtosRepositorioBMM.listarCategoriasBMM());
+  async listarCategoriasBMM(_reqBMM: Request, resBMM: Response): Promise<void> {
+    resBMM.status(200).json(await produtosRepositorioBMM.listarCategoriasBMM());
   },
 };

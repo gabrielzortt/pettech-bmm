@@ -42,6 +42,9 @@ export function validarProdutoBMM(corpoBMM: unknown): ResultadoValidacaoBMM {
     errosBMM.push(`categoria é obrigatória e deve ser uma de: ${categoriasValidasBMM.join(', ')}.`);
   }
 
+  const slugBMM = entradaBMM.slug === undefined ? '' : entradaBMM.slug;
+  if (!ehTextoBMM(slugBMM) || !/^[a-z0-9-]{0,60}$/.test(slugBMM)) errosBMM.push('slug, quando enviado, deve ter apenas letras minúsculas, números e hífen.');
+
   const subtituloBMM = entradaBMM.subtitulo === undefined ? '' : entradaBMM.subtitulo;
   if (!ehTextoBMM(subtituloBMM) || subtituloBMM.length > 80) errosBMM.push('subtitulo, quando enviado, deve ser um texto de até 80 caracteres.');
 
@@ -66,6 +69,7 @@ export function validarProdutoBMM(corpoBMM: unknown): ResultadoValidacaoBMM {
       descricao: descricaoBMM,
       preco: Math.round((entradaBMM.preco as number) * 100) / 100,
       imagem: (imagemBMM as string).trim(),
+      slug: slugBMM as string,
       categoria: entradaBMM.categoria as string,
       nota: notaBMM as number,
       avaliacoes: avaliacoesBMM as number,

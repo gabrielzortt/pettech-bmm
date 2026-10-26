@@ -60,7 +60,7 @@ export default function CarrinhoBMM() {
         ListFooterComponent={itensBMM.length > 0 ? resumoBMM : null}
         renderItem={({ item: itemBMM }) => (
           <Pressable style={estilosBMM.itemBMM} onPress={() => roteadorBMM.push({ pathname: '/produto/[id]', params: { id: itemBMM.produtoBMM.idBMM } })}>
-            <FotoBMM origemBMM={itemBMM.produtoBMM.imagemBMM} estiloBMM={estilosBMM.fotoBMM} />
+            <FotoBMM origemBMM={itemBMM.produtoBMM.imagemBMM} reservaBMM={itemBMM.produtoBMM.imagemReservaBMM} estiloBMM={estilosBMM.fotoBMM} />
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={estilosBMM.nomeBMM} numberOfLines={1}>{itemBMM.produtoBMM.nomeBMM}</Text>
               <Text style={estilosBMM.detalheBMM} numberOfLines={1}>Porte {itemBMM.porteBMM} · {formatarMoedaBMM(itemBMM.produtoBMM.precoBMM)} cada</Text>

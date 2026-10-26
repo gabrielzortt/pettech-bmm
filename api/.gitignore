@@ -1,5 +1,5 @@
 node_modules/
 dist/
-dados/*.db
-dados/*.db-wal
-dados/*.db-shm
+.env
+*.json.key
+serviceAccount*.json

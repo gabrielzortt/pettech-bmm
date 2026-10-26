@@ -1,52 +1,52 @@
 # PetTech API
 
-Express + TypeScript + SQLite · Base URL: `http://localhost:3333` · Formato: JSON.
+Express + TypeScript + **Firebase Firestore** (`firebase-admin`) · JSON.
 
-Os dados ficam no arquivo `api/dados/pettech.db`. Na primeira execução a tabela `produtos` é criada e populada com 8 produtos; a partir daí tudo o que for cadastrado, alterado ou removido **persiste** entre reinicializações.
+URL publicada (Render): `https://pettech-api-bmm.onrender.com`
+
+## Variáveis de ambiente
+
+| Variável | Descrição |
+|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | JSON da conta de serviço do Firebase (obrigatória). Alternativa: `FIREBASE_SERVICE_ACCOUNT_BASE64` com o mesmo JSON em base64. |
+| `PORT` | Porta (o Render define sozinho). |
+
+Sem credenciais a API **não sobe** e mostra uma mensagem explicando o que falta.
 
 ## Estrutura do código
 
 ```
 src/
-├── index.ts                  inicialização (popula o banco se estiver vazio e sobe o servidor)
+├── index.ts                  inicialização (popula o Firestore se estiver vazio e sobe o servidor)
 ├── app.ts                    Express: CORS, JSON, imagens estáticas, rotas e tratamento de erros
-├── config/ambiente.ts        porta e caminhos
-├── db/conexao.ts             conexão SQLite e criação das tabelas
-├── db/semente.ts             produtos iniciais
-├── repositorios/             acesso ao banco (SQL)
+├── firebase/firestore.ts     conexão com o Firestore
+├── repositorios/             acesso aos dados (coleção produtos)
 ├── controladores/            regras de cada rota (status HTTP)
 ├── rotas/                    mapeamento das rotas
 ├── validacao/                validação do corpo das requisições
-└── middlewares/              404 e erros
+├── middlewares/              404 e erros
+└── db/semente.ts             8 produtos iniciais (com foto real de cada tipo de produto)
 public/imagens/               ilustrações dos produtos (servidas em /imagens/...)
 ```
 
-## Tabela `produtos`
+## Firestore
 
-| Coluna | Tipo | Regra |
-|---|---|---|
-| `id` | INTEGER | chave primária, autoincremento |
-| `nome` | TEXT | obrigatório |
-| `subtitulo` | TEXT | padrão `''` |
-| `descricao` | TEXT | obrigatória |
-| `preco` | REAL | `> 0` |
-| `imagem` | TEXT | caminho `/imagens/...` ou URL |
-| `categoria` | TEXT | indexada |
-| `nota` | REAL | entre 0 e 5 |
-| `avaliacoes` | INTEGER | `>= 0` |
-| `novo` | INTEGER | 0 ou 1 (a API devolve `true`/`false`) |
-| `criado_em` | TEXT | data de criação |
+- Coleção **`produtos`** — um documento por produto, com id numérico em texto (`"1"`, `"2"`, ...):
+  `nome`, `subtitulo`, `descricao`, `preco`, `imagem`, `slug`, `categoria`, `nota`, `avaliacoes`, `novo`, `ordem`, `criadoEm`.
+- Documento **`meta/contadorProdutos`** — guarda o último id usado. Os cadastros usam uma **transação** para nunca repetir id.
+- Na primeira execução, se a coleção estiver vazia, a API cria os 8 produtos iniciais.
 
 ## Modelo JSON
 
 ```json
 {
-  "id": 3,
+  "id": "3",
   "nome": "Câmera PetCam 360",
   "subtitulo": "Vídeo, áudio e petisco",
   "descricao": "Câmera Full HD que gira 360 graus...",
   "preco": 419.9,
-  "imagem": "http://localhost:3333/imagens/camera-petcam-360.png",
+  "imagem": "https://i.ebayimg.com/images/g/1xYAAeSwI6dpreTd/s-l1600.jpg",
+  "slug": "camera-petcam-360",
   "categoria": "Câmeras",
   "nota": 4.9,
   "avaliacoes": 2330,
@@ -54,12 +54,10 @@ public/imagens/               ilustrações dos produtos (servidas em /imagens/.
 }
 ```
 
-A API sempre devolve a imagem como URL absoluta.
-
 ## Rotas
 
 ### `GET /produtos`
-Lista os produtos. Filtros opcionais: `?categoria=Brinquedos` e `?busca=coleira` (procura no nome e no subtítulo). **200** → array.
+Lista os produtos. Filtros opcionais: `?categoria=Brinquedos` e `?busca=coleira`. **200** → array.
 
 ### `GET /produtos/:id`
 - **200** → produto
@@ -67,7 +65,7 @@ Lista os produtos. Filtros opcionais: `?categoria=Brinquedos` e `?busca=coleira`
 - **404** → `{ "erro": "Produto com id 99 não encontrado." }`
 
 ### `POST /produtos`
-Cadastra um produto (`Content-Type: application/json`).
+`Content-Type: application/json`
 
 | Campo | Obrigatório | Regra |
 |---|---|---|
@@ -76,33 +74,32 @@ Cadastra um produto (`Content-Type: application/json`).
 | `preco` | sim | número maior que 0 |
 | `categoria` | sim | `Coleiras`, `Alimentação`, `Câmeras`, `Brinquedos` ou `Higiene` |
 | `imagem` | não | URL http/https ou caminho `/imagens/...` (padrão `/imagens/padrao.png`) |
+| `slug` | não | letras minúsculas, números e hífen (liga o produto à ilustração de reserva do app) |
 | `subtitulo` | não | até 80 caracteres |
 | `nota` | não | 0 a 5 (padrão 0) |
 | `avaliacoes` | não | inteiro ≥ 0 (padrão 0) |
 | `novo` | não | booleano (padrão `true`) |
 
-- **201** → produto criado, com o `id` e o header `Location: /produtos/:id`
+- **201** → produto criado, com `id` e header `Location: /produtos/:id`
 - **400** → `{ "erro": "Dados inválidos.", "detalhes": ["preco é obrigatório e deve ser um número maior que zero.", "..."] }`
 - **400** → `{ "erro": "JSON inválido no corpo da requisição." }`
 
 ### `PUT /produtos/:id`
-Substitui os dados do produto (mesmas regras do POST). **200** → produto atualizado · **400** → dados ou id inválidos · **404** → não encontrado.
+Substitui os dados do produto (mesmas regras do POST). **200** · **400** · **404**.
 
 ### `DELETE /produtos/:id`
-**204** (sem corpo) · **400** → id inválido · **404** → não encontrado.
+**204** (sem corpo) · **400** · **404**.
 
 ### `GET /categorias`
-**200** → `["Alimentação", "Brinquedos", "Coleiras", "Câmeras", "Higiene"]` (as categorias existentes no banco).
+**200** → `["Alimentação", "Brinquedos", "Câmeras", "Coleiras", "Higiene"]`.
 
 ### Outras
-- `GET /` → informações da API · `GET /saude` → `{ "status": "ok" }`
-- `GET /imagens/<arquivo>.png` → imagens dos produtos
-- **404** `{ "erro": "Rota não encontrada." }` · **500** `{ "erro": "Erro interno do servidor." }`
+`GET /` (informações) · `GET /saude` → `{ "status": "ok" }` · `GET /imagens/<arquivo>.png` · **404** `Rota não encontrada.` · **500** `Erro interno do servidor.`
 
 ## Comandos
 
 ```bash
-npm run dev             # desenvolvimento com recarga automática
-npm run build && npm start   # produção
-npm run resetar-banco   # apaga o arquivo do banco (será recriado com os 8 produtos iniciais)
+npm run build     # compila para dist/
+npm start         # produção (usado pelo Render)
+npm run dev       # desenvolvimento com recarga (exige FIREBASE_SERVICE_ACCOUNT no ambiente)
 ```

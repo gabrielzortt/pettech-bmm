@@ -19,7 +19,7 @@ export default function ProductCard({ produtoBMM, aoAbrirBMM }: ProductCardProps
   return (
     <Pressable style={({ pressed: pressionadoBMM }) => [estilosBMM.cartaoBMM, pressionadoBMM && { transform: [{ scale: 0.98 }] }]} onPress={() => aoAbrirBMM(produtoBMM.idBMM)}>
       <View>
-        <FotoBMM origemBMM={produtoBMM.imagemBMM} estiloBMM={estilosBMM.fotoBMM} />
+        <FotoBMM origemBMM={produtoBMM.imagemBMM} reservaBMM={produtoBMM.imagemReservaBMM} estiloBMM={estilosBMM.fotoBMM} />
         <View style={estilosBMM.notaBMM}>
           <Ionicons name="star" size={11} color={coresBMM.estrelaBMM} />
           <Text style={estilosBMM.notaTextoBMM}>{produtoBMM.notaBMM.toFixed(1)}</Text>

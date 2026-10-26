@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { ambienteBMM } from './config/ambiente';
-import { produtosRotasBMM } from './rotas/produtosRotas';
+import { assincronoBMM, produtosRotasBMM } from './rotas/produtosRotas';
 import { produtosControladorBMM } from './controladores/produtosControlador';
 import { rotaNaoEncontradaBMM, tratarErrosBMM } from './middlewares/erros';
 
@@ -21,7 +21,7 @@ appBMM.get('/', (_reqBMM, resBMM) => {
 appBMM.get('/saude', (_reqBMM, resBMM) => {
   resBMM.status(200).json({ status: 'ok' });
 });
-appBMM.get('/categorias', produtosControladorBMM.listarCategoriasBMM);
+appBMM.get('/categorias', assincronoBMM(produtosControladorBMM.listarCategoriasBMM));
 appBMM.use('/produtos', produtosRotasBMM);
 
 appBMM.use(rotaNaoEncontradaBMM);
