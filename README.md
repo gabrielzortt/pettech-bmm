@@ -1,34 +1,31 @@
 # PetTech 🐾 — Loja virtual de produtos inteligentes para pets
 
-App mobile (**React Native + Expo Router + TSX**) conectado a uma **API Express (Node + TypeScript)** com banco de dados **SQLite** local.
+App mobile (**React Native + Expo Router + TSX**) com **API própria (Express + TypeScript)** e banco de dados **SQLite**, tudo em **um único projeto**.
 
 **Equipe: Bianca, Maria e Miguel — BMM.** Todas as variáveis, funções, estados, props e componentes levam o sufixo `BMM`.
-
-## Arquitetura
-
-```
-App (Expo)  ──HTTP/JSON──▶  API Express (porta 3333)  ──SQL──▶  SQLite (api/dados/pettech.db)
-```
 
 ## Como rodar
 
 ```bash
-# Terminal 1 — API
-cd api
 npm install
-npm run dev            # http://localhost:3333  (o banco é criado e populado no primeiro start)
-
-# Terminal 2 — App (na raiz do projeto)
-npm install
-npx expo start         # Expo Go (celular), emulador ou "w" para web
+npm start
 ```
 
-O app descobre a API sozinho: usa o IP do computador que roda o Expo (celular e PC na mesma rede Wi-Fi), `localhost` no navegador e `10.0.2.2` no emulador Android.
-Para apontar para outra URL: `EXPO_PUBLIC_API_URL=http://192.168.0.10:3333 npx expo start`.
+Só isso. O `npm start` sobe a **API** (porta 3333) e o **app** (Expo) juntos: o banco de dados é criado e populado sozinho no primeiro uso. Depois, no terminal do Expo:
+
+- **celular:** escaneie o QR code com o app **Expo Go** (celular e computador na mesma rede Wi-Fi);
+- **navegador:** tecle `w`;
+- **emulador Android:** tecle `a`.
+
+O app encontra a API sozinho (IP do computador no celular, `localhost` no navegador, `10.0.2.2` no emulador Android). Para encerrar, `Ctrl + C` no terminal.
 
 **Conta de teste:** `cliente@pettech.com` / `123456` — ou crie a sua em **Criar conta**.
 
-Se a API não estiver rodando, a tela inicial mostra "Sem conexão com a API" com o botão **Tentar novamente**.
+## Arquitetura
+
+```
+App (src/)  ──HTTP/JSON──▶  API Express (server/, porta 3333)  ──SQL──▶  SQLite (server/dados/pettech.db)
+```
 
 ## O que o app faz
 
@@ -44,18 +41,23 @@ Se a API não estiver rodando, a tela inicial mostra "Sem conexão com a API" co
 | Checkout e pedidos | Endereço, forma de pagamento (Pix, cartão, dinheiro) e histórico de pedidos (compra simulada) |
 | Perfil | Resumo da conta, atalhos e saída |
 
+## Estrutura
+
+```
+src/        aplicativo (telas em src/app, componentes, estado, serviços, tema)
+server/     API Express (rotas, controladores, repositório, banco SQLite)
+assets/     imagens do app
+scripts/    iniciar.js — o "npm start": liga a API e depois o Expo
+docs/       documentação das rotas e coleção do Postman
+```
+
 ## API
 
 Rotas: `GET /produtos`, `GET /produtos/:id`, `POST /produtos`, `PUT /produtos/:id`, `DELETE /produtos/:id`, `GET /categorias`, `GET /saude`.
-Detalhes: [`api/docs/API.md`](api/docs/API.md) · Coleção Postman: [`api/docs/PetTech.postman_collection.json`](api/docs/PetTech.postman_collection.json).
-Para voltar ao catálogo inicial: `cd api && npm run resetar-banco` e suba a API de novo.
+Detalhes: [`docs/API.md`](docs/API.md) · Coleção Postman: [`docs/PetTech.postman_collection.json`](docs/PetTech.postman_collection.json).
+Para voltar ao catálogo inicial: `npm run resetar-banco` e `npm start` de novo.
 
 ## Imagens
 
 - **Produtos:** foto real de cada tipo de produto (campo `imagem` no banco). Se não carregar, o app mostra a ilustração do produto (`assets/produtos`, escolhida pelo `slug`).
 - **Login e boas-vindas:** fotos de cães do Unsplash, com imagem de reserva embutida.
-
-## Versão web (GitHub Pages)
-
-O workflow `.github/workflows/deploy.yml` publica o app em https://gabrielzortt.github.io/pettech-bmm/ a cada push na `main`.
-O site só mostra produtos se a API estiver acessível pelo navegador (por exemplo, rodando no seu computador em `localhost:3333`, ou hospedada e informada na variável `API_URL` do repositório).

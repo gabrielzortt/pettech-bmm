@@ -2,7 +2,7 @@ node_modules/
 .expo/
 dist/
 web-build/
-api/node_modules/
-api/dist/
 *.log
 .env
+server/dados/*.db
+server/dados/*.db.tmp

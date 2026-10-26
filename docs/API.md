@@ -1,30 +1,32 @@
 # PetTech API
 
-Express + TypeScript + **SQLite** (`better-sqlite3`) · JSON · `http://localhost:3333`
+Express + TypeScript + **SQLite** (`sql.js`) · JSON · `http://localhost:3333`
+
+A API faz parte do mesmo projeto do aplicativo: o `npm start` da raiz sobe a API e o app juntos.
 
 ## Variáveis de ambiente (todas opcionais)
 
 | Variável | Padrão | Descrição |
 |---|---|---|
 | `PORT` | `3333` | Porta do servidor |
-| `DB_ARQUIVO` | `api/dados/pettech.db` | Caminho do arquivo SQLite |
+| `DB_ARQUIVO` | `server/dados/pettech.db` | Caminho do arquivo SQLite |
 
-## Estrutura do código
+## Estrutura do código (pasta `server/`)
 
 ```
-src/
-├── index.ts                  inicialização (popula o banco se estiver vazio e sobe o servidor)
+server/
+├── index.ts                  abre o banco, popula se estiver vazio e liga o servidor
 ├── app.ts                    Express: CORS, JSON, imagens estáticas, rotas e tratamento de erros
 ├── config/ambiente.ts        porta e caminhos
-├── db/conexao.ts             conexão SQLite e criação da tabela
+├── db/conexao.ts             abre o SQLite (sql.js), cria a tabela e grava o arquivo
 ├── db/semente.ts             8 produtos iniciais
 ├── repositorios/             acesso ao banco (SQL)
 ├── controladores/            regras de cada rota (status HTTP)
 ├── rotas/                    mapeamento das rotas
 ├── validacao/                validação do corpo das requisições
-└── middlewares/              404 e erros
-public/imagens/               ilustrações dos produtos (servidas em /imagens/...)
-dados/pettech.db              banco SQLite (criado sozinho; não vai para o Git)
+├── middlewares/              404 e erros
+├── public/imagens/           ilustrações dos produtos (servidas em /imagens/...)
+└── dados/pettech.db          banco SQLite (criado sozinho; não vai para o Git)
 ```
 
 ## Tabela `produtos` (SQLite)
@@ -106,11 +108,10 @@ Substitui os dados do produto (mesmas regras do POST). **200** · **400** · **4
 ### Outras
 `GET /` (informações) · `GET /saude` → `{ "status": "ok" }` · `GET /imagens/<arquivo>.png` · **404** `Rota não encontrada.` · **500** `Erro interno do servidor.`
 
-## Comandos
+## Comandos (na raiz do projeto)
 
 ```bash
-npm run build     # compila para dist/
-npm start         # produção
-npm run dev       # desenvolvimento com recarga automática
-npm run resetar-banco   # apaga o arquivo do banco (recriado com os 8 produtos iniciais)
+npm start            # sobe a API e o app juntos
+npm run api          # sobe só a API
+npm run resetar-banco   # apaga o arquivo do banco (recriado com os 8 produtos iniciais no próximo start)
 ```
