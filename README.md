@@ -1,44 +1,34 @@
 # PetTech 🐾 — Loja virtual de produtos inteligentes para pets
 
-App mobile (**React Native + Expo Router + TSX**) conectado a uma **API Express (Node + TypeScript)** hospedada na nuvem, com os dados no **Firebase Firestore**.
+App mobile (**React Native + Expo Router + TSX**) conectado a uma **API Express (Node + TypeScript)** com banco de dados **SQLite** local.
 
 **Equipe: Bianca, Maria e Miguel — BMM.** Todas as variáveis, funções, estados, props e componentes levam o sufixo `BMM`.
 
 ## Arquitetura
 
 ```
-App (Expo / GitHub Pages)  ──HTTP/JSON──▶  API Express (Render)  ──firebase-admin──▶  Firestore
+App (Expo)  ──HTTP/JSON──▶  API Express (porta 3333)  ──SQL──▶  SQLite (api/dados/pettech.db)
 ```
 
-Nada roda no computador: o app consome a API publicada e a API grava no Firebase.
-
-## Publicar a API (uma vez)
-
-**1. Firebase** — [console.firebase.google.com](https://console.firebase.google.com)
-1. Crie um projeto → **Build › Firestore Database › Criar banco de dados** (modo produção, região `southamerica-east1`).
-2. **Configurações do projeto › Contas de serviço › Gerar nova chave privada** → baixa um arquivo `.json`.
-
-**2. Render** — [render.com](https://render.com)
-1. **New › Blueprint** → conecte este repositório (o arquivo `render.yaml` já descreve o serviço `pettech-api-bmm`).
-2. Quando pedir `FIREBASE_SERVICE_ACCOUNT`, cole **o conteúdo inteiro** do `.json` baixado.
-3. Aguarde o deploy. Teste: `https://pettech-api-bmm.onrender.com/saude` → `{"status":"ok"}` e `/produtos` → lista de produtos.
-
-No primeiro start a API cria a coleção `produtos` no Firestore com 8 produtos. Depois disso, tudo o que for cadastrado, alterado ou removido fica salvo no Firebase.
-
-**3. Apontar o app para a API** — se o serviço do Render tiver outro nome/URL, defina no GitHub **Settings › Secrets and variables › Actions › Variables** a variável `API_URL` com a URL do serviço e rode o workflow de novo. (A URL padrão do app é `https://pettech-api-bmm.onrender.com`.)
-
-> O plano gratuito do Render "dorme" após alguns minutos parado; a primeira chamada pode levar cerca de 30 a 50 segundos. O app avisa na tela e aguarda.
-
-## Rodar o app
+## Como rodar
 
 ```bash
+# Terminal 1 — API
+cd api
 npm install
-npx expo start      # Expo Go (celular), emulador ou "w" para web
+npm run dev            # http://localhost:3333  (o banco é criado e populado no primeiro start)
+
+# Terminal 2 — App (na raiz do projeto)
+npm install
+npx expo start         # Expo Go (celular), emulador ou "w" para web
 ```
 
-Versão web: https://gabrielzortt.github.io/pettech-bmm/ (publicada automaticamente pelo GitHub Actions a cada push na `main`; ative em **Settings › Pages › Source: GitHub Actions**).
+O app descobre a API sozinho: usa o IP do computador que roda o Expo (celular e PC na mesma rede Wi-Fi), `localhost` no navegador e `10.0.2.2` no emulador Android.
+Para apontar para outra URL: `EXPO_PUBLIC_API_URL=http://192.168.0.10:3333 npx expo start`.
 
 **Conta de teste:** `cliente@pettech.com` / `123456` — ou crie a sua em **Criar conta**.
+
+Se a API não estiver rodando, a tela inicial mostra "Sem conexão com a API" com o botão **Tentar novamente**.
 
 ## O que o app faz
 
@@ -54,40 +44,18 @@ Versão web: https://gabrielzortt.github.io/pettech-bmm/ (publicada automaticame
 | Checkout e pedidos | Endereço, forma de pagamento (Pix, cartão, dinheiro) e histórico de pedidos (compra simulada) |
 | Perfil | Resumo da conta, atalhos e saída |
 
-## Navegação (Expo Router)
+## API
 
-```
-src/app
-├── _layout.tsx                  fontes + provedores + Stack raiz
-├── (auth)/                      grupo público (redireciona para o app se já logado)
-│   ├── index.tsx                boas-vindas
-│   ├── entrar.tsx               login
-│   └── cadastro.tsx             cadastro
-└── (app)/                       grupo protegido (redireciona para o login se não logado)
-    ├── (tabs)/                  Tabs: Início · Favoritos · Carrinho · Perfil
-    ├── produto/[id].tsx         Stack: detalhes (recebe o parâmetro id)
-    ├── checkout.tsx             Stack
-    └── pedidos.tsx              Stack
-```
-
-## Estrutura do código
-
-```
-src/
-├── app/            rotas
-├── components/     ui/ (BotaoAcao, CampoTexto, FotoBMM, ...) e produto/ (ProductCard, ProductList, ...)
-├── store/          Auth, Carrinho (useReducer), Favoritos, Pedidos e Feedback (providers + hooks)
-├── services/       api.ts (fetch + conversão) e armazenamento.ts (AsyncStorage)
-├── config/         URL da API
-├── hooks/  data/  theme/  types/  utils/
-assets/             ilustrações dos produtos (reserva) e imagens de apoio
-api/                servidor Express + Firestore (documentação em api/docs/API.md)
-render.yaml         deploy da API no Render
-```
-
-Alias de import: `@/` aponta para `src/`.
+Rotas: `GET /produtos`, `GET /produtos/:id`, `POST /produtos`, `PUT /produtos/:id`, `DELETE /produtos/:id`, `GET /categorias`, `GET /saude`.
+Detalhes: [`api/docs/API.md`](api/docs/API.md) · Coleção Postman: [`api/docs/PetTech.postman_collection.json`](api/docs/PetTech.postman_collection.json).
+Para voltar ao catálogo inicial: `cd api && npm run resetar-banco` e suba a API de novo.
 
 ## Imagens
 
-- **Produtos:** foto real de cada tipo de produto, guardada no Firestore (campo `imagem`). Se a foto não carregar, o app mostra automaticamente a ilustração do produto (`assets/produtos`, escolhida pelo campo `slug`).
-- **Login e boas-vindas:** fotos de cães do Unsplash, com imagem de reserva embutida no app.
+- **Produtos:** foto real de cada tipo de produto (campo `imagem` no banco). Se não carregar, o app mostra a ilustração do produto (`assets/produtos`, escolhida pelo `slug`).
+- **Login e boas-vindas:** fotos de cães do Unsplash, com imagem de reserva embutida.
+
+## Versão web (GitHub Pages)
+
+O workflow `.github/workflows/deploy.yml` publica o app em https://gabrielzortt.github.io/pettech-bmm/ a cada push na `main`.
+O site só mostra produtos se a API estiver acessível pelo navegador (por exemplo, rodando no seu computador em `localhost:3333`, ou hospedada e informada na variável `API_URL` do repositório).

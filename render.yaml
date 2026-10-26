@@ -1,4 +1,5 @@
-# Blueprint do Render: cria o serviço da API (Express) a partir da pasta api/.
+# Blueprint do Render (opcional): publica a API Express a partir da pasta api/.
+# Atenção: o disco do plano gratuito é temporário. Ao reiniciar, o SQLite é recriado com os produtos iniciais.
 services:
   - type: web
     name: pettech-api-bmm
@@ -11,5 +12,3 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
-      - key: FIREBASE_SERVICE_ACCOUNT
-        sync: false

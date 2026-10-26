@@ -41,7 +41,7 @@ export default function InicioBMM() {
   const estadoVazioBMM = carregandoBMM ? (
     <View style={estilosBMM.carregandoBMM}>
       <ActivityIndicator size="large" color={coresBMM.primariaBMM} />
-      <Text style={estilosBMM.carregandoTextoBMM}>Buscando produtos no servidor...{'\n'}Na primeira vez pode levar alguns segundos.</Text>
+      <Text style={estilosBMM.carregandoTextoBMM}>Buscando produtos na API...</Text>
     </View>
   ) : erroBMM !== '' ? (
     <TelaVazia iconeBMM="cloud-offline-outline" tituloBMM="Sem conexão com a API" textoBMM={erroBMM} rotuloBotaoBMM="Tentar novamente" aoPressionarBMM={recarregarBMM} />

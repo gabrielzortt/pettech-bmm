@@ -1,40 +1,50 @@
 # PetTech API
 
-Express + TypeScript + **Firebase Firestore** (`firebase-admin`) · JSON.
+Express + TypeScript + **SQLite** (`better-sqlite3`) · JSON · `http://localhost:3333`
 
-URL publicada (Render): `https://pettech-api-bmm.onrender.com`
+## Variáveis de ambiente (todas opcionais)
 
-## Variáveis de ambiente
-
-| Variável | Descrição |
-|---|---|
-| `FIREBASE_SERVICE_ACCOUNT` | JSON da conta de serviço do Firebase (obrigatória). Alternativa: `FIREBASE_SERVICE_ACCOUNT_BASE64` com o mesmo JSON em base64. |
-| `PORT` | Porta (o Render define sozinho). |
-
-Sem credenciais a API **não sobe** e mostra uma mensagem explicando o que falta.
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `PORT` | `3333` | Porta do servidor |
+| `DB_ARQUIVO` | `api/dados/pettech.db` | Caminho do arquivo SQLite |
 
 ## Estrutura do código
 
 ```
 src/
-├── index.ts                  inicialização (popula o Firestore se estiver vazio e sobe o servidor)
+├── index.ts                  inicialização (popula o banco se estiver vazio e sobe o servidor)
 ├── app.ts                    Express: CORS, JSON, imagens estáticas, rotas e tratamento de erros
-├── firebase/firestore.ts     conexão com o Firestore
-├── repositorios/             acesso aos dados (coleção produtos)
+├── config/ambiente.ts        porta e caminhos
+├── db/conexao.ts             conexão SQLite e criação da tabela
+├── db/semente.ts             8 produtos iniciais
+├── repositorios/             acesso ao banco (SQL)
 ├── controladores/            regras de cada rota (status HTTP)
 ├── rotas/                    mapeamento das rotas
 ├── validacao/                validação do corpo das requisições
-├── middlewares/              404 e erros
-└── db/semente.ts             8 produtos iniciais (com foto real de cada tipo de produto)
+└── middlewares/              404 e erros
 public/imagens/               ilustrações dos produtos (servidas em /imagens/...)
+dados/pettech.db              banco SQLite (criado sozinho; não vai para o Git)
 ```
 
-## Firestore
+## Tabela `produtos` (SQLite)
 
-- Coleção **`produtos`** — um documento por produto, com id numérico em texto (`"1"`, `"2"`, ...):
-  `nome`, `subtitulo`, `descricao`, `preco`, `imagem`, `slug`, `categoria`, `nota`, `avaliacoes`, `novo`, `ordem`, `criadoEm`.
-- Documento **`meta/contadorProdutos`** — guarda o último id usado. Os cadastros usam uma **transação** para nunca repetir id.
-- Na primeira execução, se a coleção estiver vazia, a API cria os 8 produtos iniciais.
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | INTEGER | chave primária, autoincremento |
+| `nome` | TEXT | obrigatório |
+| `subtitulo` | TEXT | padrão `''` |
+| `descricao` | TEXT | obrigatória |
+| `preco` | REAL | `> 0` |
+| `imagem` | TEXT | URL da foto ou caminho `/imagens/...` |
+| `slug` | TEXT | liga o produto à ilustração de reserva do app |
+| `categoria` | TEXT | indexada |
+| `nota` | REAL | entre 0 e 5 |
+| `avaliacoes` | INTEGER | `>= 0` |
+| `novo` | INTEGER | 0 ou 1 (a API devolve `true`/`false`) |
+| `criado_em` | TEXT | data de criação |
+
+Na primeira execução a tabela é criada e populada com 8 produtos. O que for cadastrado, alterado ou removido **persiste** no arquivo, mesmo reiniciando a API.
 
 ## Modelo JSON
 
@@ -100,6 +110,7 @@ Substitui os dados do produto (mesmas regras do POST). **200** · **400** · **4
 
 ```bash
 npm run build     # compila para dist/
-npm start         # produção (usado pelo Render)
-npm run dev       # desenvolvimento com recarga (exige FIREBASE_SERVICE_ACCOUNT no ambiente)
+npm start         # produção
+npm run dev       # desenvolvimento com recarga automática
+npm run resetar-banco   # apaga o arquivo do banco (recriado com os 8 produtos iniciais)
 ```

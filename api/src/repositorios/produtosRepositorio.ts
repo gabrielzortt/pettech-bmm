@@ -1,96 +1,84 @@
-import { bancoBMM } from '../firebase/firestore';
+import { bancoBMM } from '../db/conexao';
 import { produtosIniciaisBMM } from '../db/semente';
 import { DadosProdutoBMM, FiltrosProdutoBMM, ProdutoBMM } from '../tipos/produto';
 
-interface DocumentoProdutoBMM extends DadosProdutoBMM {
-  ordem: number;
-  criadoEm: string;
+interface LinhaProdutoBMM extends Omit<ProdutoBMM, 'id' | 'novo'> {
+  id: number;
+  novo: number;
 }
 
-const nomeColecaoBMM = 'produtos';
-const caminhoContadorBMM = 'meta/contadorProdutos';
+const colunasBMM = 'id, nome, subtitulo, descricao, preco, imagem, slug, categoria, nota, avaliacoes, novo';
 
-const colecaoBMM = () => bancoBMM().collection(nomeColecaoBMM);
+const converterLinhaBMM = (linhaBMM: LinhaProdutoBMM): ProdutoBMM => ({ ...linhaBMM, id: String(linhaBMM.id), novo: linhaBMM.novo === 1 });
 
-const paraProdutoBMM = (idBMM: string, dadosBMM: DocumentoProdutoBMM): ProdutoBMM => ({
-  id: idBMM,
-  nome: dadosBMM.nome,
-  subtitulo: dadosBMM.subtitulo,
-  descricao: dadosBMM.descricao,
-  preco: dadosBMM.preco,
-  imagem: dadosBMM.imagem,
-  slug: dadosBMM.slug,
-  categoria: dadosBMM.categoria,
-  nota: dadosBMM.nota,
-  avaliacoes: dadosBMM.avaliacoes,
-  novo: dadosBMM.novo,
-});
+const parametrosBMM = (dadosBMM: DadosProdutoBMM) => ({ ...dadosBMM, novo: dadosBMM.novo ? 1 : 0 });
 
+// Camada de acesso ao banco. O controlador não conhece SQL: trocar de banco só exige reescrever este arquivo.
 export const produtosRepositorioBMM = {
   async listarBMM(filtrosBMM: FiltrosProdutoBMM = {}): Promise<ProdutoBMM[]> {
-    // O catálogo é pequeno: filtramos e ordenamos em memória para não depender de índices compostos do Firestore.
-    const respostaBMM = await colecaoBMM().get();
-    const termoBMM = filtrosBMM.buscaBMM?.toLowerCase();
-    return respostaBMM.docs
-      .map((docBMM) => ({ idBMM: docBMM.id, dadosBMM: docBMM.data() as DocumentoProdutoBMM }))
-      .filter(({ dadosBMM }) => !filtrosBMM.categoriaBMM || dadosBMM.categoria === filtrosBMM.categoriaBMM)
-      .filter(({ dadosBMM }) => !termoBMM || `${dadosBMM.nome} ${dadosBMM.subtitulo}`.toLowerCase().includes(termoBMM))
-      .sort((aBMM, bBMM) => aBMM.dadosBMM.ordem - bBMM.dadosBMM.ordem)
-      .map(({ idBMM, dadosBMM }) => paraProdutoBMM(idBMM, dadosBMM));
+    const condicoesBMM: string[] = [];
+    const valoresBMM: Record<string, string> = {};
+    if (filtrosBMM.categoriaBMM) {
+      condicoesBMM.push('categoria = @categoria');
+      valoresBMM.categoria = filtrosBMM.categoriaBMM;
+    }
+    if (filtrosBMM.buscaBMM) {
+      condicoesBMM.push('(nome LIKE @busca OR subtitulo LIKE @busca)');
+      valoresBMM.busca = `%${filtrosBMM.buscaBMM}%`;
+    }
+    const filtroSqlBMM = condicoesBMM.length > 0 ? `WHERE ${condicoesBMM.join(' AND ')}` : '';
+    const linhasBMM = bancoBMM.prepare(`SELECT ${colunasBMM} FROM produtos ${filtroSqlBMM} ORDER BY id`).all(valoresBMM) as LinhaProdutoBMM[];
+    return linhasBMM.map(converterLinhaBMM);
   },
 
   async buscarPorIdBMM(idBMM: string): Promise<ProdutoBMM | undefined> {
-    const docBMM = await colecaoBMM().doc(idBMM).get();
-    return docBMM.exists ? paraProdutoBMM(docBMM.id, docBMM.data() as DocumentoProdutoBMM) : undefined;
+    const linhaBMM = bancoBMM.prepare(`SELECT ${colunasBMM} FROM produtos WHERE id = ?`).get(Number(idBMM)) as LinhaProdutoBMM | undefined;
+    return linhaBMM ? converterLinhaBMM(linhaBMM) : undefined;
   },
 
   async inserirBMM(dadosBMM: DadosProdutoBMM): Promise<ProdutoBMM> {
-    const bancoAtualBMM = bancoBMM();
-    const refContadorBMM = bancoAtualBMM.doc(caminhoContadorBMM);
-    // A transação garante que dois cadastros simultâneos não recebam o mesmo id.
-    return bancoAtualBMM.runTransaction(async (transacaoBMM) => {
-      const contadorBMM = await transacaoBMM.get(refContadorBMM);
-      const proximoBMM = ((contadorBMM.data()?.ultimoId as number | undefined) ?? 0) + 1;
-      const documentoBMM: DocumentoProdutoBMM = { ...dadosBMM, ordem: proximoBMM, criadoEm: new Date().toISOString() };
-      transacaoBMM.set(colecaoBMM().doc(String(proximoBMM)), documentoBMM);
-      transacaoBMM.set(refContadorBMM, { ultimoId: proximoBMM });
-      return paraProdutoBMM(String(proximoBMM), documentoBMM);
-    });
+    const resultadoBMM = bancoBMM
+      .prepare(
+        `INSERT INTO produtos (nome, subtitulo, descricao, preco, imagem, slug, categoria, nota, avaliacoes, novo)
+         VALUES (@nome, @subtitulo, @descricao, @preco, @imagem, @slug, @categoria, @nota, @avaliacoes, @novo)`
+      )
+      .run(parametrosBMM(dadosBMM));
+    return (await this.buscarPorIdBMM(String(resultadoBMM.lastInsertRowid))) as ProdutoBMM;
   },
 
   async atualizarBMM(idBMM: string, dadosBMM: DadosProdutoBMM): Promise<ProdutoBMM | undefined> {
-    const refBMM = colecaoBMM().doc(idBMM);
-    const atualBMM = await refBMM.get();
-    if (!atualBMM.exists) return undefined;
-    await refBMM.update({ ...dadosBMM });
-    return this.buscarPorIdBMM(idBMM);
+    const resultadoBMM = bancoBMM
+      .prepare(
+        `UPDATE produtos SET nome=@nome, subtitulo=@subtitulo, descricao=@descricao, preco=@preco, imagem=@imagem,
+         slug=@slug, categoria=@categoria, nota=@nota, avaliacoes=@avaliacoes, novo=@novo WHERE id=@id`
+      )
+      .run({ ...parametrosBMM(dadosBMM), id: Number(idBMM) });
+    return resultadoBMM.changes > 0 ? this.buscarPorIdBMM(idBMM) : undefined;
   },
 
   async removerBMM(idBMM: string): Promise<boolean> {
-    const refBMM = colecaoBMM().doc(idBMM);
-    const atualBMM = await refBMM.get();
-    if (!atualBMM.exists) return false;
-    await refBMM.delete();
-    return true;
+    return bancoBMM.prepare('DELETE FROM produtos WHERE id = ?').run(Number(idBMM)).changes > 0;
   },
 
   async listarCategoriasBMM(): Promise<string[]> {
-    const listaBMM = await this.listarBMM();
-    return [...new Set(listaBMM.map((produtoBMM) => produtoBMM.categoria))].sort((aBMM, bBMM) => aBMM.localeCompare(bBMM, 'pt-BR'));
+    const linhasBMM = bancoBMM.prepare('SELECT DISTINCT categoria FROM produtos ORDER BY categoria').all() as { categoria: string }[];
+    return linhasBMM.map((linhaBMM) => linhaBMM.categoria);
   },
 
   async popularSeVazioBMM(): Promise<number> {
-    const existentesBMM = await colecaoBMM().limit(1).get();
-    if (!existentesBMM.empty) return 0;
-    const bancoAtualBMM = bancoBMM();
-    const loteBMM = bancoAtualBMM.batch();
-    produtosIniciaisBMM.forEach((dadosBMM, indiceBMM) => {
-      const numeroBMM = indiceBMM + 1;
-      const documentoBMM: DocumentoProdutoBMM = { ...dadosBMM, ordem: numeroBMM, criadoEm: new Date().toISOString() };
-      loteBMM.set(colecaoBMM().doc(String(numeroBMM)), documentoBMM);
+    const { total: totalBMM } = bancoBMM.prepare('SELECT COUNT(*) AS total FROM produtos').get() as { total: number };
+    if (totalBMM > 0) return 0;
+    const inserirTodosBMM = bancoBMM.transaction((listaBMM: typeof produtosIniciaisBMM) => {
+      listaBMM.forEach((dadosBMM) => {
+        bancoBMM
+          .prepare(
+            `INSERT INTO produtos (nome, subtitulo, descricao, preco, imagem, slug, categoria, nota, avaliacoes, novo)
+             VALUES (@nome, @subtitulo, @descricao, @preco, @imagem, @slug, @categoria, @nota, @avaliacoes, @novo)`
+          )
+          .run(parametrosBMM(dadosBMM));
+      });
     });
-    loteBMM.set(bancoAtualBMM.doc(caminhoContadorBMM), { ultimoId: produtosIniciaisBMM.length });
-    await loteBMM.commit();
+    inserirTodosBMM(produtosIniciaisBMM);
     return produtosIniciaisBMM.length;
   },
 };
